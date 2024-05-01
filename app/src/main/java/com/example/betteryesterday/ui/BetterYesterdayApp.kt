@@ -1,27 +1,27 @@
 package com.example.betteryesterday.ui
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,16 +30,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.betteryesterday.ui.theme.BetterYesterdayTheme
+import androidx.navigation.navArgument
 
 
 enum class AppScreens{
@@ -47,7 +46,8 @@ enum class AppScreens{
     dashboard,//this represents the dashboard page
     goals,//this represents the goals page
     settings,//this represents the settings page
-    share//this represents the share page.
+    tasks,//this represents the tasks pages the goal that was clicked and display the goal's information
+    share,//this represents the share page.
 }
 data class BottomNavigationItems(
     val title : String,
@@ -61,6 +61,8 @@ data class BottomNavigationItems(
 fun BetterYesterdayApp(){
     val navController: NavHostController = rememberNavController();
     val context = LocalContext.current;
+
+    val goalViewModel = GoalViewModel()
 
     val items = listOf(
         BottomNavigationItems (
@@ -76,11 +78,12 @@ fun BetterYesterdayApp(){
             hasNews = false
         ),
         BottomNavigationItems (
-            title = AppScreens.share.name,
-            selectedIcon = Icons.Filled.Share,
-            unSelectedIcon = Icons.Outlined.Share,
+            title = AppScreens.settings.name,
+            selectedIcon = Icons.Filled.Settings,
+            unSelectedIcon = Icons.Outlined.Settings,
             hasNews = false
         ),
+
     )
 
     var selectedItemIndex by rememberSaveable {
@@ -92,28 +95,18 @@ fun BetterYesterdayApp(){
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
+                /*This is where i will put the ICON for the Better Yesterday app*/
                 title = {
                     Text("Better Yesterday",
                         maxLines = 1,
                         overflow =  TextOverflow.Ellipsis)//Add a title to the app,
-                },
-                actions = {
-                    IconButton(onClick = {
-                        /* Open the user profile screen*/
-                        navController.navigate(route = AppScreens.settings.name)
-                        selectedItemIndex = 4
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "This is the Settings page")
-                    }
                 }
             )
         },
         bottomBar = {
-           NavigationBar {
+           NavigationBar{
                items.forEachIndexed { index, item ->
                    NavigationBarItem(
                        selected = selectedItemIndex == index,
@@ -124,6 +117,7 @@ fun BetterYesterdayApp(){
                        label = {
                                Text(text = item.title)
                        },
+                       //this makes it so that the label only shows up when teh user is currently on the page
                        alwaysShowLabel = false,
                        icon = {
                            BadgedBox(
@@ -143,25 +137,64 @@ fun BetterYesterdayApp(){
                        })
                }
            }
-        }){innerpadding ->
+        },
+        floatingActionButton = {
+            if (currentRoute(navController) == AppScreens.goals.name) {
+                FAB(context)
+            }
+        },
+        ){innerpadding ->
         NavHost(
             navController = navController,
             startDestination = AppScreens.dashboard.name,
             modifier = Modifier.padding(innerpadding)
         ){
             composable(route = AppScreens.dashboard.name){
-                DashboardScreen()
+                DashboardScreen(goalViewModel)
             }
             composable(route = AppScreens.settings.name){
                 SettingsScreen()
             }
             composable(route = AppScreens.goals.name){
-                GoalScreen()
+                GoalScreen(goalViewModel, navController)
             }
+
+            composable(route = AppScreens.tasks.name + "/{index}",
+                arguments = listOf(
+                    navArgument(name = "index") {
+                        type = NavType.IntType //extract the argument
+                    }
+                )
+            ) { index ->
+                GoalsDetailsScreen(
+                    goalViewModel,
+                    index.arguments?.getInt("index")//passing the index
+                )
+            }
+
             composable(route = AppScreens.share.name){
                 ShareScreen()
             }
         }
+    }
+}
+
+@Composable
+fun currentRoute(navController: NavHostController): String? {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    return navBackStackEntry?.destination?.route
+}
+
+@Composable
+fun FAB(context: Context) {
+    FloatingActionButton(onClick = {
+        // Handle FAB click action here
+        // For example, show a toast or navigate to another screen
+        Toast.makeText(context, "FAB Clicked", Toast.LENGTH_SHORT).show()
+    },
+    ) {
+        // This is what will be displayed inside the FAB
+        Icon(Icons.Filled.Add, contentDescription = "Add")
     }
 }
 
@@ -171,34 +204,4 @@ fun BetterYesterdayApp(){
 //    BetterYesterdayTheme {
 //        BetterYesterdayApp()
 //    }
-//}
-
-
-
-
-
-
-
-//@Composable
-//fun oldBottom(){
-//    BottomAppBar(
-//        actions = {
-//            IconButton(onClick = { navController.navigate(route = AppScreens.dashboard.name)}) {
-//                Icon(
-//                    Icons.Filled.AccountBox,
-//                    contentDescription = "Dashboard page")
-//            }
-//            IconButton(onClick = { navController.navigate(route = AppScreens.goals.name) }) {
-//                Icon(
-//                    Icons.Default.Info,
-//                    contentDescription = "Goals page",
-//                )
-//            }
-//            IconButton(onClick = { navController.navigate(route = AppScreens.share.name)}) {
-//                Icon(
-//                    Icons.Default.Share,
-//                    contentDescription = "Profile",
-//                )
-//            }
-//        })
 //}
