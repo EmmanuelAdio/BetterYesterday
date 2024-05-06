@@ -3,7 +3,6 @@ package com.example.betteryesterday.ui
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -80,7 +78,7 @@ fun GoalsDetailsScreen(
                 ){
                     displayGoalInfo(goalData)
                     Spacer(modifier = Modifier.width(16.dp))
-                    displayGoalPieChart(goalData)
+                    displayGoalPieChart(milestonesViewModel,goalData)
                 }
             }
             item {
@@ -122,7 +120,7 @@ fun displayGoalInfo(goalData: Goals?) {
 }
 
 @Composable
-fun displayGoalPieChart(goal: Goals?) {
+fun displayGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals?) {
     /*TODO THE PIE CHART FOR THE GOAL DETAILS PAGE*/
     Card(
         modifier = Modifier
@@ -134,7 +132,10 @@ fun displayGoalPieChart(goal: Goals?) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
         ){
-            Text(text = "This will display the goal's pie chart")
+            var entries = goal?.let { getGoalPieChart(milestonesViewModel, it).observeAsState().value }
+            if (entries != null) {
+                PieChart(entries, false)
+            }
         }
     }
 }
@@ -173,6 +174,7 @@ fun listOfMilestones(
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth()  // Fill the width of the parent
+            .padding(bottom = 40.dp)
     ) {
         items(milestones) {milestone ->
             milestoneCard(milestone, milestonesViewModel, context)

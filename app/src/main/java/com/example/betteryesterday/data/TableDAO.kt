@@ -38,20 +38,26 @@ interface TablesDao{
     @Delete
     suspend fun deleteMilestone(milestones: Milestones)
 
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = true")//This query gets the number of all the incomplete milestones
+    fun allCompleteMilestones() : LiveData<Int>
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")//This query gets the number of all the remaining milestones
+    fun allIncompleteMilestones() : LiveData<Int>
+
     @Query("SELECT * from Milestones WHERE id = :id")
     fun getMilestoneItem(id: Int) : LiveData<Milestones>
 
     @Query("SELECT * from Milestones WHERE goalID = :id")
     fun getGoalMilestones(id: Int) : LiveData<List<Milestones>>
 
-    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = true")
-    fun getNumOfComplete() : LiveData<Int>
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = true AND goalID = :id")//This query gets the number of complete milestones for a goal.
+    fun getNumOfComplete(id: Int) : LiveData<Int>
 
-    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")
-    fun getNumOfIncomplete() : LiveData<Int>
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false AND goalID = :id")//This query gets the number of incomplete milestones for a goal.
+    fun getNumOfIncomplete(id: Int) : LiveData<Int>
 
-    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")//this query gets the number of the
-    fun getNumOfGoalMilestones() : LiveData<Int>
+    @Query("SELECT COUNT(*) FROM Milestones WHERE goalID = :id")//This query gets the number of milestones for a goal
+    fun getNumOfGoalMilestones(id: Int) : LiveData<Int>
 
     @Query("UPDATE milestones SET complete = true WHERE id = :id")
     suspend fun completeMilestone(id: Int)

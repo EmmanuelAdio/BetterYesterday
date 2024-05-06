@@ -1,6 +1,6 @@
 package com.example.betteryesterday.ui
 
-import android.security.identity.CredentialDataResult.Entries
+import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,12 +24,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.ui.theme.BetterYesterdayTheme
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun DashboardScreen(goalViewModel: GoalViewModel, milestonesViewModel: MilestoneViewModel){
@@ -61,7 +67,7 @@ fun DashboardScreen(goalViewModel: GoalViewModel, milestonesViewModel: Milestone
                 Spacer(modifier = Modifier.height(16.dp))
             }
             item{
-                displayGoalPieCharts(goals)
+                displayGoalPieCharts(goals, milestonesViewModel)
             }
         }
     }
@@ -110,7 +116,7 @@ fun displayNoOfRemainingTasks(noIncompleteMilestones: Int?) {
 }
 
 @Composable
-fun displayGoalPieCharts(goals: List<Goals>) {
+fun displayGoalPieCharts(goals: List<Goals>, milestonesViewModel: MilestoneViewModel) {
     if (goals == null){
         Text(text = "You Have No Goals")
         Text(text = "Try and add some")
@@ -123,30 +129,110 @@ fun displayGoalPieCharts(goals: List<Goals>) {
     ) {
         // This is how you define individual items within a LazyRow
         items(goals) { item ->
-            GoalPie(item)
+            GoalPie(item, milestonesViewModel)
         }
     }
 }
 
 @Composable
-fun GoalPie(goal : Goals){
+fun GoalPie(goal: Goals, milestonesViewModel: MilestoneViewModel){
     //this is where we will be making the pie chart for each goal that is displayed on the dashboard
     Card(
         modifier = Modifier
             .height(350.dp)
             .width(350.dp) // Set a width for the card
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text("Pie chart for goal:\n ${goal.title}")
+        Column (modifier = Modifier.fillMaxSize()) {
+            Text("${goal.title}", modifier = Modifier.align(Alignment.CenterHorizontally))
+            Box(contentAlignment = Alignment.Center) {
+                var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value
+                if (entries != null) {
+                    PieChart(entries, true)
+                }
+            }
         }
     }
 }
 
 /*This is where all the code needed to make the pie charts will be*/
 data class PieChartEntry(
+    val label : String,
     val color : Color,
     val percentage : Float
 )
+
+fun getGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals) : LiveData<List<PieChartEntry>>{
+    //this mediator Live data allows for multiple live sources to be observed at once and updates whenever one source changes
+    val result = MediatorLiveData<List<PieChartEntry>>()
+
+    val totalLiveData = milestonesViewModel.numOfGoalMilestone(goal.id)
+    val completeLiveData = milestonesViewModel.numOfGoalComplete(goal.id)
+    val incompleteLiveData = milestonesViewModel.numOfGoalIncomplete(goal.id)
+
+    result.addSource(totalLiveData) { total ->
+        if (total != null) {
+            val complete = completeLiveData.value ?: 0
+            val incomplete = incompleteLiveData.value ?: 0
+            if (total > 0) { // Ensure there is no division by zero
+                val entries = listOf(
+                    PieChartEntry(
+                        label = "Complete",
+                        color = Color.Green,
+                        percentage = (complete.toFloat() / total.toFloat())
+                    ),
+                    PieChartEntry(
+                        label = "Incomplete",
+                        color = Color.Red,
+                        percentage = (incomplete.toFloat() / total.toFloat())
+                    )
+                )
+                result.value = entries
+            }
+        }
+    }
+
+    result.addSource(completeLiveData) { complete ->
+        val total = totalLiveData.value ?: 0
+        val incomplete = incompleteLiveData.value ?: 0
+        if (total > 0) {
+            val entries = listOf(
+                PieChartEntry(
+                    label = "Complete",
+                    color = Color.Green,
+                    percentage = (complete.toFloat() / total.toFloat())
+                ),
+                PieChartEntry(
+                    label = "Incomplete",
+                    color = Color.Red,
+                    percentage = (incomplete.toFloat() / total.toFloat())
+                )
+            )
+            result.value = entries
+        }
+    }
+
+    result.addSource(incompleteLiveData) { incomplete ->
+        val total = totalLiveData.value ?: 0
+        val complete = completeLiveData.value ?: 0
+        if (total > 0) {
+            val entries = listOf(
+                PieChartEntry(
+                    label = "Complete",
+                    color = Color.Green,
+                    percentage = (complete.toFloat() / total.toFloat())
+                ),
+                PieChartEntry(
+                    label = "Incomplete",
+                    color = Color.Red,
+                    percentage = (incomplete.toFloat() / total.toFloat())
+                )
+            )
+            result.value = entries
+        }
+    }
+
+    return result
+}
 
 fun calculateStartAngles(entries: List<PieChartEntry>) : List<Float>{
     var totalPercentage = 0f
@@ -158,18 +244,36 @@ fun calculateStartAngles(entries: List<PieChartEntry>) : List<Float>{
 }
 
 @Composable
-fun PieChart(entries: List<PieChartEntry>) {
-    Canvas(modifier = Modifier.size(300.dp)) {
+fun PieChart(entries: List<PieChartEntry>, full: Boolean) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
         val startAngles = calculateStartAngles(entries)
+        val gap = 0.5f // Gap in degrees
         entries.forEachIndexed { index, entry ->
             drawArc(
                 color = entry.color,
-                startAngle = startAngles[index],
+                startAngle = startAngles[index]+ gap /2,
                 sweepAngle = entry.percentage * 360f,
                 useCenter = true,
                 topLeft = Offset.Zero,
                 size = this.size
             )
+            // Draw text labels
+            if ((entry.percentage > 0) && (full)){
+                val textRadius = size.minDimension / 2 * 0.5f // Adjust radius for label positioning
+                val textAngle = Math.toRadians((startAngles[index] + (entry.percentage * 360f) / 2).toDouble()).toFloat()
+                val textX = center.x + textRadius * cos(textAngle)
+                val textY = center.y + textRadius * sin(textAngle)
+                drawContext.canvas.nativeCanvas.drawText(
+                    entry.label,
+                    textX,
+                    textY,
+                    Paint().apply {
+                        textSize = 28.sp.toPx() // Set text size
+                        color = android.graphics.Color.BLACK
+                        textAlign = Paint.Align.CENTER
+                    }
+                )
+            }
         }
     }
 }

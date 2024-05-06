@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -37,9 +38,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
+import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
 @Composable
 fun GoalScreen(
@@ -122,8 +125,16 @@ fun GoalCard(
     ) {
         Row{
             //this will be where the pie chart for the goal will be placed.
-            Box(contentAlignment = Alignment.Center) {
-                Text("Pie chart for\n ${goal.title}")
+            val milestonesViewModel : MilestoneViewModel = viewModel()
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.height(100.dp)
+                    .width(100.dp)
+            ) {
+                var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value
+                if (entries != null) {
+                    PieChart(entries, false)
+                }
             }
             Box(contentAlignment = Alignment.Center){
                 Column {

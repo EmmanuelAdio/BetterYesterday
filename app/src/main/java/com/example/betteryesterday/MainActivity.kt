@@ -33,12 +33,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    BetterYesterdayTheme {
-//        Greeting("Android")
-//    }
-//}

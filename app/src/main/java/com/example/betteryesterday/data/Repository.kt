@@ -23,6 +23,9 @@ class AppRepository(private val tablesDao: TablesDao){
 
 
     /*Milestone repository operations*/
+    val allCompleteMileStones: LiveData<Int> = tablesDao.allCompleteMilestones()
+    val allIncompleteMileStones: LiveData<Int> = tablesDao.allIncompleteMilestones()
+
     suspend fun insertNewMilestone(milestones: Milestones){
         tablesDao.insertMilestone(milestones)
     }
@@ -39,11 +42,15 @@ class AppRepository(private val tablesDao: TablesDao){
         return tablesDao.getGoalMilestones(id)
     }
 
-    fun getNumOfComplete() : LiveData<Int>{
-        return tablesDao.getNumOfComplete()
+    fun getNumOfComplete(id : Int) : LiveData<Int>{
+        return tablesDao.getNumOfComplete(id)
     }
-    fun getNumOfIncomplete() : LiveData<Int>{
-        return tablesDao.getNumOfIncomplete()
+    fun getNumOfIncomplete(id : Int) : LiveData<Int>{
+        return tablesDao.getNumOfIncomplete(id)
+    }
+
+    fun getNumOfMilestones(id : Int) : LiveData<Int>{
+        return tablesDao.getNumOfGoalMilestones(id)
     }
 
 }

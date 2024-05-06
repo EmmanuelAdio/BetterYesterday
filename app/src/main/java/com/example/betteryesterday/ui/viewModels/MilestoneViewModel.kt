@@ -18,8 +18,8 @@ class MilestoneViewModel(application: Application) : AndroidViewModel(applicatio
     init{
         val tablesDao = AppDatabase.getDatabase(application).tablesDao()
         repository = AppRepository(tablesDao)
-        completedMilestones = repository.getNumOfComplete()
-        incompletedMilestones = repository.getNumOfIncomplete()
+        completedMilestones = repository.allCompleteMileStones
+        incompletedMilestones = repository.allIncompleteMileStones
     }
 
     fun getGoalMilestones(id :Int) : LiveData<List<Milestones>> {
@@ -36,5 +36,17 @@ class MilestoneViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun updateMilestone(milestone : Milestones) = viewModelScope.launch{
         repository.updateMilestone(milestone)
+    }
+
+    fun numOfGoalMilestone(id : Int) : LiveData<Int>{
+        return repository.getNumOfMilestones(id)
+    }
+
+    fun numOfGoalIncomplete(id : Int) : LiveData<Int>{
+        return repository.getNumOfIncomplete(id)
+    }
+
+    fun numOfGoalComplete(id : Int) : LiveData<Int>{
+        return repository.getNumOfComplete(id)
     }
 }
