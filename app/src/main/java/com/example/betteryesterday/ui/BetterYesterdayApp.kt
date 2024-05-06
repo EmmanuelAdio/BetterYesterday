@@ -1,7 +1,6 @@
 package com.example.betteryesterday.ui
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
@@ -32,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -39,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.betteryesterday.ui.viewModels.GoalViewModel
 
 
 enum class AppScreens{
@@ -46,8 +47,10 @@ enum class AppScreens{
     dashboard,//this represents the dashboard page
     goals,//this represents the goals page
     settings,//this represents the settings page
-    tasks,//this represents the tasks pages the goal that was clicked and display the goal's information
-    share,//this represents the share page.
+    goalMilestones,//this represents the tasks pages the goal that was clicked and display the goal's information
+    goalShare,//this represents the share page.
+    createGoal,
+    createMilestones,
 }
 data class BottomNavigationItems(
     val title : String,
@@ -62,7 +65,7 @@ fun BetterYesterdayApp(){
     val navController: NavHostController = rememberNavController();
     val context = LocalContext.current;
 
-    val goalViewModel = GoalViewModel()
+    val goalViewModel : GoalViewModel = viewModel()
 
     val items = listOf(
         BottomNavigationItems (
@@ -118,7 +121,7 @@ fun BetterYesterdayApp(){
                                Text(text = item.title)
                        },
                        //this makes it so that the label only shows up when teh user is currently on the page
-                       alwaysShowLabel = false,
+                       //alwaysShowLabel = false,
                        icon = {
                            BadgedBox(
                                badge = {
@@ -140,7 +143,14 @@ fun BetterYesterdayApp(){
         },
         floatingActionButton = {
             if (currentRoute(navController) == AppScreens.goals.name) {
-                FAB(context)
+                FloatingActionButton(onClick = {
+                    // Handle FAB click action here
+                    navController.navigate(route = AppScreens.createGoal.name)
+                },
+                ) {
+                    // This is what will be displayed inside the FAB
+                    Icon(Icons.Filled.Add, contentDescription = "Add")
+                }
             }
         },
         ){innerpadding ->
@@ -153,28 +163,49 @@ fun BetterYesterdayApp(){
                 DashboardScreen(goalViewModel)
             }
             composable(route = AppScreens.settings.name){
-                SettingsScreen()
+                SettingsScreen(navController)
             }
             composable(route = AppScreens.goals.name){
                 GoalScreen(goalViewModel, navController)
             }
 
-            composable(route = AppScreens.tasks.name + "/{index}",
+            composable(route = AppScreens.goalMilestones.name + "/{id}",
                 arguments = listOf(
-                    navArgument(name = "index") {
+                    navArgument(name = "id") {
                         type = NavType.IntType //extract the argument
                     }
                 )
-            ) { index ->
+            ) {id ->
                 GoalsDetailsScreen(
+                    navController,
                     goalViewModel,
-                    index.arguments?.getInt("index")//passing the index
+                    id.arguments?.getInt("id")//passing the goalID
                 )
             }
 
-            composable(route = AppScreens.share.name){
+            composable(route = AppScreens.createMilestones.name + "/{id}",
+                arguments = listOf(
+                    navArgument(name = "id"){
+                        type = NavType.IntType//extract the argument as it is passed through the navigation route
+                    }
+                )
+            ){id ->
+                NewMileStone(
+                    navController,
+                    id.arguments?.getInt("id")//pass the goal ID to the New Milestone creation page
+                )
+            }
+
+            composable(route = AppScreens.createGoal.name){
+                NewGoalScreen(navController,goalViewModel)
+            }
+
+            composable(route = AppScreens.goalShare.name){
                 ShareScreen()
             }
+
+
+
         }
     }
 }
@@ -184,24 +215,3 @@ fun currentRoute(navController: NavHostController): String? {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     return navBackStackEntry?.destination?.route
 }
-
-@Composable
-fun FAB(context: Context) {
-    FloatingActionButton(onClick = {
-        // Handle FAB click action here
-        // For example, show a toast or navigate to another screen
-        Toast.makeText(context, "FAB Clicked", Toast.LENGTH_SHORT).show()
-    },
-    ) {
-        // This is what will be displayed inside the FAB
-        Icon(Icons.Filled.Add, contentDescription = "Add")
-    }
-}
-
-//@Preview(showBackground = true)
-//@Composable
-//fun showApp(){
-//    BetterYesterdayTheme {
-//        BetterYesterdayApp()
-//    }
-//}
