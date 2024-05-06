@@ -38,4 +38,12 @@ class AppRepository(private val tablesDao: TablesDao){
     fun getGoalMileStones(id : Int) : LiveData<List<Milestones>>{
         return tablesDao.getGoalMilestones(id)
     }
+
+    fun getNumOfComplete() : LiveData<Int>{
+        return tablesDao.getNumOfComplete()
+    }
+    fun getNumOfIncomplete() : LiveData<Int>{
+        return tablesDao.getNumOfIncomplete()
+    }
+
 }

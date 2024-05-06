@@ -11,9 +11,15 @@ import kotlinx.coroutines.launch
 
 class MilestoneViewModel(application: Application) : AndroidViewModel(application){
     private val repository : AppRepository
+
+    val completedMilestones : LiveData<Int>
+    val incompletedMilestones : LiveData<Int>
+
     init{
         val tablesDao = AppDatabase.getDatabase(application).tablesDao()
         repository = AppRepository(tablesDao)
+        completedMilestones = repository.getNumOfComplete()
+        incompletedMilestones = repository.getNumOfIncomplete()
     }
 
     fun getGoalMilestones(id :Int) : LiveData<List<Milestones>> {
@@ -31,5 +37,4 @@ class MilestoneViewModel(application: Application) : AndroidViewModel(applicatio
     fun updateMilestone(milestone : Milestones) = viewModelScope.launch{
         repository.updateMilestone(milestone)
     }
-
 }

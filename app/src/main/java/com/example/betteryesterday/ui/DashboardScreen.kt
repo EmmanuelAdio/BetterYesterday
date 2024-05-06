@@ -2,6 +2,7 @@ package com.example.betteryesterday.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,56 +24,47 @@ import androidx.compose.ui.unit.dp
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.ui.theme.BetterYesterdayTheme
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
+import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
 @Composable
-fun DashboardScreen(goalViewModel: GoalViewModel){
+fun DashboardScreen(goalViewModel: GoalViewModel, milestonesViewModel: MilestoneViewModel){
     /*This is the dashboard screen composable
     * TODO : MAke the dashboard screen composable and all of its features*/
 
     val goals = goalViewModel.allGoals.observeAsState(initial = emptyList()).value //This is how the goals displayed in the lazy row will be stored.
-    //place holder add show that this is the dashboard screen.
-    LazyColumn {
-        item{
-            WelcomeBackMessage()
-        }
+    val noCompletedMilestones = milestonesViewModel.completedMilestones.observeAsState().value
+    val noIncompleteMilestones = milestonesViewModel.incompletedMilestones.observeAsState().value
+    Column {
+        Text("WELCOME BACK", modifier = Modifier.align(Alignment.CenterHorizontally))
+        LazyColumn {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    displayNoOfCompletedTasks(noCompletedMilestones)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    displayNoOfRemainingTasks(noIncompleteMilestones)
+                }
+            }
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ){
-                displayNoOfCompletedTasks()
-                Spacer(modifier = Modifier.width(16.dp))
-                displayNoOfRemainingTasks()
+            item{
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            item{
+                displayGoalPieCharts(goals)
             }
         }
-
-        item{
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        item{
-            displayGoalPieCharts(goals)
-        }
     }
-}
-
-@Composable
-fun WelcomeBackMessage(){
-    // Placeholder for the actual user's name and date
-    /*TODO set the text to actually show the date */
-    val date = "<Today's date>"
-    Text("Welcome Back")
-    Spacer(modifier = Modifier.height(8.dp))
-    Text("Today - $date")
 
 }
 
 @Composable
-fun displayNoOfCompletedTasks(){
+fun displayNoOfCompletedTasks(noCompletedMilestones: Int?) {
     Card(
         modifier = Modifier
             .height(150.dp) // Set a fixed height for the cards
@@ -83,12 +75,16 @@ fun displayNoOfCompletedTasks(){
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
         ){
-            Text(text = "This will display the number of completed Tasks")
+            Column {
+                Text(text = "$noCompletedMilestones")
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "Completed Milestones")
+            }
         }
     }
 }
 @Composable
-fun displayNoOfRemainingTasks(){
+fun displayNoOfRemainingTasks(noIncompleteMilestones: Int?) {
     Card(
         modifier = Modifier
             .height(150.dp) // Set a fixed height for the cards
@@ -99,13 +95,23 @@ fun displayNoOfRemainingTasks(){
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
         ){
-            Text(text = "This will display the number of remaining Tasks")
+            Column {
+                Text(text = "$noIncompleteMilestones")
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "Remaining milestones")
+            }
         }
     }
 }
 
 @Composable
 fun displayGoalPieCharts(goals: List<Goals>) {
+    if (goals == null){
+        Text(text = "You Have No Goals")
+        Text(text = "Try and add some")
+        return
+    }
+
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp), // Spacing between items
         contentPadding = PaddingValues(horizontal = 16.dp)   // Padding on the sides of the LazyRow

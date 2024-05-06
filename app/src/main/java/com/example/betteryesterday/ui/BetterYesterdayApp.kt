@@ -1,10 +1,10 @@
 package com.example.betteryesterday.ui
 
-import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountBox
@@ -40,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
+import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
 
 enum class AppScreens{
@@ -47,7 +48,7 @@ enum class AppScreens{
     dashboard,//this represents the dashboard page
     goals,//this represents the goals page
     settings,//this represents the settings page
-    goalMilestones,//this represents the tasks pages the goal that was clicked and display the goal's information
+    goalMilestones,//this represents the page the shows further detail about a goal and all its milestones.
     goalShare,//this represents the share page.
     createGoal,
     createMilestones,
@@ -66,6 +67,7 @@ fun BetterYesterdayApp(){
     val context = LocalContext.current;
 
     val goalViewModel : GoalViewModel = viewModel()
+    val milestonesViewModel : MilestoneViewModel = viewModel()
 
     val items = listOf(
         BottomNavigationItems (
@@ -151,6 +153,15 @@ fun BetterYesterdayApp(){
                     // This is what will be displayed inside the FAB
                     Icon(Icons.Filled.Add, contentDescription = "Add")
                 }
+            } else if (currentRoute(navController) == AppScreens.goalMilestones.name + "/{id}"){
+                FloatingActionButton(onClick = {
+                    // Handle FAB click action here
+                    navController.popBackStack()
+                },
+                ) {
+                    // This is what will be displayed inside the FAB
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                }
             }
         },
         ){innerpadding ->
@@ -160,7 +171,7 @@ fun BetterYesterdayApp(){
             modifier = Modifier.padding(innerpadding)
         ){
             composable(route = AppScreens.dashboard.name){
-                DashboardScreen(goalViewModel)
+                DashboardScreen(goalViewModel, milestonesViewModel)
             }
             composable(route = AppScreens.settings.name){
                 SettingsScreen(navController)
@@ -192,7 +203,8 @@ fun BetterYesterdayApp(){
             ){id ->
                 NewMileStone(
                     navController,
-                    id.arguments?.getInt("id")//pass the goal ID to the New Milestone creation page
+                    id.arguments?.getInt("id"),//pass the goal ID to the New Milestone creation page
+                    milestonesViewModel
                 )
             }
 
