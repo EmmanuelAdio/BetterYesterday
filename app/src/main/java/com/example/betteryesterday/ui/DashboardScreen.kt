@@ -1,5 +1,7 @@
 package com.example.betteryesterday.ui
 
+import android.security.identity.CredentialDataResult.Entries
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.betteryesterday.data.Goals
@@ -133,6 +138,38 @@ fun GoalPie(goal : Goals){
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text("Pie chart for goal:\n ${goal.title}")
+        }
+    }
+}
+
+/*This is where all the code needed to make the pie charts will be*/
+data class PieChartEntry(
+    val color : Color,
+    val percentage : Float
+)
+
+fun calculateStartAngles(entries: List<PieChartEntry>) : List<Float>{
+    var totalPercentage = 0f
+    return entries.map { entry ->
+        val startAngle = totalPercentage * 360
+        totalPercentage += entry.percentage
+        startAngle
+    }
+}
+
+@Composable
+fun PieChart(entries: List<PieChartEntry>) {
+    Canvas(modifier = Modifier.size(300.dp)) {
+        val startAngles = calculateStartAngles(entries)
+        entries.forEachIndexed { index, entry ->
+            drawArc(
+                color = entry.color,
+                startAngle = startAngles[index],
+                sweepAngle = entry.percentage * 360f,
+                useCenter = true,
+                topLeft = Offset.Zero,
+                size = this.size
+            )
         }
     }
 }

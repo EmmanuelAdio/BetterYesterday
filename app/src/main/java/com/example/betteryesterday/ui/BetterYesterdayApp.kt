@@ -190,7 +190,8 @@ fun BetterYesterdayApp(){
                 GoalsDetailsScreen(
                     navController,
                     goalViewModel,
-                    id.arguments?.getInt("id")//passing the goalID
+                    id.arguments?.getInt("id"),//passing the goalID
+                    milestonesViewModel
                 )
             }
 

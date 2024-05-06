@@ -21,5 +21,5 @@ data class Milestones(
     val goalID: Int = 0,
     val summary: String,
     val deadline: String,
-    val complete: Boolean
+    var complete: Boolean
 )

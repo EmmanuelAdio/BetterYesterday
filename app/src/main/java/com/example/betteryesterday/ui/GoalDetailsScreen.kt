@@ -1,5 +1,13 @@
 package com.example.betteryesterday.ui
 
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,24 +20,36 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpOffset
 
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.data.Milestones
@@ -40,16 +60,17 @@ import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 fun GoalsDetailsScreen(
     navController: NavHostController,
     goalViewModel: GoalViewModel,
-    goalIndex: Int?
+    goalIndex: Int?,
+    milestonesViewModel: MilestoneViewModel
 ){
     val goal : LiveData<Goals>? = goalIndex?.let { goalViewModel.getGoal(it) }//this is good practice so if the goal index in the route is null the program handles ir
     val goalState = goal?.observeAsState() // This handles observing and gets the current state
     val goalData = goalState?.value // Extract the current goal, may be null
 
-    val milestonesViewModel : MilestoneViewModel = viewModel()
     val milestonesList : LiveData<List<Milestones>>? = goalIndex?.let { milestonesViewModel.getGoalMilestones(it) }
     val milestoneData = milestonesList?.observeAsState(initial = emptyList())?.value
 
+    val context = LocalContext.current;
     Column {
         LazyColumn {
             item{
@@ -71,7 +92,7 @@ fun GoalsDetailsScreen(
                 )
             }
         }
-        MilestonesBox(milestoneData)
+        MilestonesBox(milestoneData, milestonesViewModel, context)
     }
 
 }
@@ -119,7 +140,11 @@ fun displayGoalPieChart(goal: Goals?) {
 }
 
 @Composable
-fun MilestonesBox(milestonesData : List<Milestones>?) {
+fun MilestonesBox(
+    milestonesData: List<Milestones>?,
+    milestonesViewModel: MilestoneViewModel,
+    context: Context
+) {
     Card(
         modifier = Modifier
             .fillMaxSize() // Fill the available space
@@ -130,13 +155,17 @@ fun MilestonesBox(milestonesData : List<Milestones>?) {
                 .fillMaxSize()
                 // Reserve space for the buttons at the bottom
         ) {
-            listOfMilestones(milestonesData)  // This will list the tasks in a LazyColumn
+            listOfMilestones(milestonesData, milestonesViewModel, context)  // This will list the tasks in a LazyColumn
         }
     }
 }
 
 @Composable
-fun listOfMilestones(milestones: List<Milestones>?) {
+fun listOfMilestones(
+    milestones: List<Milestones>?,
+    milestonesViewModel: MilestoneViewModel,
+    context: Context
+) {
     if (milestones.isNullOrEmpty()) {
         Text("No milestones available")
         return
@@ -146,32 +175,116 @@ fun listOfMilestones(milestones: List<Milestones>?) {
         modifier = Modifier.fillMaxWidth()  // Fill the width of the parent
     ) {
         items(milestones) {milestone ->
-            milestoneCard(milestone)
+            milestoneCard(milestone, milestonesViewModel, context)
         }
     }
 }
 
 
 @Composable
-fun milestoneCard(milestone: Milestones) {
-    val checkedState = remember { mutableStateOf(true) }
+fun milestoneCard(
+    milestone: Milestones,
+    milestonesViewModel: MilestoneViewModel,
+    context: Context
+
+) {
+    var isContextMenuVisible by rememberSaveable { mutableStateOf(false) }
+    var pressOffset by remember { mutableStateOf(DpOffset.Zero) }
+    var itemHeight by remember { mutableStateOf(0.dp) }
+    val interactionSource = remember{ MutableInteractionSource() }
+    val density = LocalDensity.current
+
+    val checkedState = remember { mutableStateOf(milestone.complete) }
     Card(
+        shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         modifier = Modifier
             .fillMaxWidth()
+            .indication(interactionSource, LocalIndication.current)
             .padding(8.dp)
+            .onSizeChanged {
+                itemHeight = with(density) { it.height.toDp() }
+            }
+            .pointerInput(true) {
+                detectTapGestures(
+                    onPress = { // This handles tap without the need for clickable
+                        val press = PressInteraction.Press(it)
+                        interactionSource.emit(press)// this interaction source stuff makes it possible for the interaction animation to appear when the user presses the goal card.
+                        tryAwaitRelease()
+                        interactionSource.emit(PressInteraction.Release(press))
+                    },
+                    onLongPress = {
+                        isContextMenuVisible = true
+                        pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
+                    }
+                )
+            }
     ) {
         Row(
-            modifier = Modifier.padding(16.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth()
         ) {
-            Column {
-                Text("${milestone.summary}")
-                Text("${milestone.deadline}")
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(milestone.summary, style = MaterialTheme.typography.titleMedium)
+                Text("Due: ${milestone.deadline}", style = MaterialTheme.typography.labelMedium)
             }
-
             Checkbox(
                 checked = checkedState.value,
-                onCheckedChange = { checkedState.value = it }
+                onCheckedChange = {
+                    checkedState.value = it
+                    if (it) {
+                        milestone.complete = true
+                        milestonesViewModel.updateMilestone(milestone)
+                        Toast.makeText(context, "Marked Complete!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        milestone.complete = false
+                        milestonesViewModel.updateMilestone(milestone)
+                        Toast.makeText(context, "Marked Incomplete!", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.padding(end = 8.dp)
             )
+        }
+        DropdownMenu(
+            expanded = isContextMenuVisible,
+            onDismissRequest = { isContextMenuVisible = false },
+            offset = pressOffset.copy(
+                y = pressOffset.y - itemHeight
+            )
+
+        ){
+            DropdownMenuItem(
+                text = { Text(text = "Mark As Incomplete") },
+                onClick = {
+                    checkedState.value = false
+                    milestone.complete = false
+                    milestonesViewModel.updateMilestone(milestone)
+                    Toast.makeText(context, "Marked Incomplete!", Toast.LENGTH_SHORT).show()
+
+                    isContextMenuVisible = false
+                })
+            DropdownMenuItem(
+                text = { Text(text = "Mark As Complete") },
+                onClick = {
+                    milestone.complete = true
+                    milestonesViewModel.updateMilestone(milestone)
+                    Toast.makeText(context, "Marked Complete!", Toast.LENGTH_SHORT).show()
+                    checkedState.value = true
+
+                    isContextMenuVisible = false
+                })
+            DropdownMenuItem(
+                text = { Text(text = "Delete") },
+                onClick = {
+                    Toast
+                        .makeText(context, "Deleting Milestone", Toast.LENGTH_SHORT)
+                        .show()
+                    milestonesViewModel.deleteMilestone(milestone)
+                    isContextMenuVisible = false
+                })
         }
     }
 }
@@ -184,7 +297,7 @@ fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?
     ) {
         Button(onClick = { navController.navigate(route = AppScreens.createMilestones.name + "/${goal?.id}") }) {
             Icon(Icons.Filled.Add, contentDescription = "Add More Tasks")
-            Text(text = "Create New Task")
+            Text(text = "New Milestone")
         }
         Button(onClick = { /* TODO: Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app. */ }) {
             Icon(Icons.Filled.DateRange, contentDescription = "Add To Calendar")

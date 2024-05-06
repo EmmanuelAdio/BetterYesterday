@@ -50,9 +50,14 @@ interface TablesDao{
     @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")
     fun getNumOfIncomplete() : LiveData<Int>
 
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")//this query gets the number of the
+    fun getNumOfGoalMilestones() : LiveData<Int>
+
     @Query("UPDATE milestones SET complete = true WHERE id = :id")
     suspend fun completeMilestone(id: Int)
 
     @Query("UPDATE milestones SET complete = false WHERE id = :id")
     suspend  fun incompleteMilestone(id: Int)
+
+
 }
