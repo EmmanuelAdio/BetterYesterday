@@ -2,6 +2,7 @@ package com.example.betteryesterday.ui
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -137,17 +140,23 @@ fun displayGoalPieCharts(goals: List<Goals>, milestonesViewModel: MilestoneViewM
 @Composable
 fun GoalPie(goal: Goals, milestonesViewModel: MilestoneViewModel){
     //this is where we will be making the pie chart for each goal that is displayed on the dashboard
+    var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value
     Card(
         modifier = Modifier
-            .height(350.dp)
+            .height(380.dp)
             .width(350.dp) // Set a width for the card
+            .padding(8.dp)
     ) {
         Column (modifier = Modifier.fillMaxSize()) {
             Text("${goal.title}", modifier = Modifier.align(Alignment.CenterHorizontally))
-            Box(contentAlignment = Alignment.Center) {
-                var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value
+            if (entries != null) {
+                Row (modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Legend(entries)
+                }
+            }
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(25.dp)) {
                 if (entries != null) {
-                    PieChart(entries, true)
+                    PieChart(entries, false)
                 }
             }
         }
@@ -245,7 +254,8 @@ fun calculateStartAngles(entries: List<PieChartEntry>) : List<Float>{
 
 @Composable
 fun PieChart(entries: List<PieChartEntry>, full: Boolean) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    Canvas(modifier = Modifier.fillMaxSize()
+        .padding(4.dp)) {
         val startAngles = calculateStartAngles(entries)
         val gap = 0.5f // Gap in degrees
         entries.forEachIndexed { index, entry ->
@@ -273,6 +283,26 @@ fun PieChart(entries: List<PieChartEntry>, full: Boolean) {
                         textAlign = Paint.Align.CENTER
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun Legend(entries: List<PieChartEntry>) {
+    Row {
+        entries.forEach { entry ->
+            if (entry.percentage > 0){
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(color = entry.color, shape = CircleShape)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = entry.label)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
             }
         }
     }
