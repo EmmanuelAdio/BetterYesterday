@@ -1,7 +1,11 @@
 package com.example.betteryesterday.ui
 
 import android.content.Context
+import android.content.Intent
+import android.provider.CalendarContract
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -47,12 +51,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.data.Milestones
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun GoalsDetailsScreen(
@@ -121,7 +129,6 @@ fun displayGoalInfo(goalData: Goals?) {
 
 @Composable
 fun displayGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals?) {
-    /*TODO THE PIE CHART FOR THE GOAL DETAILS PAGE*/
     Card(
         modifier = Modifier
             .height(150.dp) // Set a fixed height for the cards
@@ -130,7 +137,6 @@ fun displayGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals?) {
     )  {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.padding(16.dp)
         ){
             var entries = goal?.let { getGoalPieChart(milestonesViewModel, it).observeAsState().value }
             if (entries != null) {
@@ -139,6 +145,46 @@ fun displayGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals?) {
         }
     }
 }
+
+@Composable
+fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?) {
+    val context = LocalContext.current
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier =  modifier
+    ) {
+        Button(onClick = { navController.navigate(route = AppScreens.createMilestones.name + "/${goal?.id}") }) {
+            Icon(Icons.Filled.Add, contentDescription = "Add More Tasks")
+            Text(text = "New Milestone")
+        }
+        Button(onClick = { /* Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app.*/
+            val intent = Intent(Intent.ACTION_INSERT).apply {
+                data = CalendarContract.Events.CONTENT_URI
+                putExtra(CalendarContract.Events.TITLE, "Deadline for Goal :${goal?.title}")
+                putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
+                putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                    goal?.deadline?.let { convertDateToEpochMillis(it) })
+                putExtra(CalendarContract.EXTRA_EVENT_END_TIME,
+                    goal?.deadline?.let { convertDateToEpochMillis(it) })
+            }
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            }
+        }) {
+            Icon(Icons.Filled.DateRange, contentDescription = "Add To Calendar")
+            Text(text = "Save To Calendar")
+        }
+    }
+}
+
+fun convertDateToEpochMillis(dateStr: String): Long {
+    // Adjust the pattern here to match "dd/MM/yyyy"
+    val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+    val date = LocalDate.parse(dateStr, formatter)
+    return date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+}
+
 
 @Composable
 fun MilestonesBox(
@@ -291,22 +337,7 @@ fun milestoneCard(
     }
 }
 
-@Composable
-fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier =  modifier
-    ) {
-        Button(onClick = { navController.navigate(route = AppScreens.createMilestones.name + "/${goal?.id}") }) {
-            Icon(Icons.Filled.Add, contentDescription = "Add More Tasks")
-            Text(text = "New Milestone")
-        }
-        Button(onClick = { /* TODO: Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app. */ }) {
-            Icon(Icons.Filled.DateRange, contentDescription = "Add To Calendar")
-            Text(text = "Save To Calendar")
-        }
-    }
-}
+
 
 //@Preview(showBackground = true)
 //@Composable

@@ -69,8 +69,8 @@ fun ListOfGoals(navController: NavHostController, goalViewModel: GoalViewModel, 
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp) // Spacing between items
         ) {
-        items(goals) { item ->
-            GoalCard(navController, item, context, goalViewModel)
+        items(goals) { goal ->
+            GoalCard(navController, goal, context, goalViewModel)
         }
     }
 }
@@ -94,12 +94,6 @@ fun GoalCard(
             .fillMaxWidth() // Fill the remaining width
             .indication(interactionSource, LocalIndication.current)
             .padding(8.dp)// Add padding around the card
-//            .clickable {
-//                Toast
-//                    .makeText(context, "Goal clicked!", Toast.LENGTH_SHORT)
-//                    .show()
-//                navController.navigate(route = AppScreens.goalMilestones.name + "/${goal.id}")
-//            }
             .onSizeChanged {
                 itemHeight = with(density) { it.height.toDp() }
             }

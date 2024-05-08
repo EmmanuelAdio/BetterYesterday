@@ -308,11 +308,3 @@ fun Legend(entries: List<PieChartEntry>) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun showDash(){
-    BetterYesterdayTheme {
-        //DashboardScreen()
-    }
-}
-
