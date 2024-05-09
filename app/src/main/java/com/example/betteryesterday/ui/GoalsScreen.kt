@@ -127,7 +127,7 @@ fun GoalCard(
             ) {
                 var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value
                 if (entries != null) {
-                    PieChart(entries, false)
+                    PieChart(entries)
                 }
             }
             Box(contentAlignment = Alignment.Center){
@@ -155,10 +155,7 @@ fun GoalCard(
             DropdownMenuItem(
                 text = { Text(text = "Share") },
                 onClick = {
-                    Toast
-                        .makeText(context, "Sharing Goal!", Toast.LENGTH_SHORT)
-                        .show()
-                    navController.navigate(route = AppScreens.goalShare.name)
+                    navController.navigate(route = AppScreens.goalShare.name + "/${goal.id}")
                     isContextMenuVisible = false
                 })
             DropdownMenuItem(

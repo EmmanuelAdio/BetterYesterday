@@ -3,9 +3,8 @@ package com.example.betteryesterday.ui
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
+import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -51,7 +50,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
@@ -140,7 +138,7 @@ fun displayGoalPieChart(milestonesViewModel: MilestoneViewModel, goal: Goals?) {
         ){
             var entries = goal?.let { getGoalPieChart(milestonesViewModel, it).observeAsState().value }
             if (entries != null) {
-                PieChart(entries, false)
+                PieChart(entries)
             }
         }
     }
@@ -158,7 +156,10 @@ fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?
             Icon(Icons.Filled.Add, contentDescription = "Add More Tasks")
             Text(text = "New Milestone")
         }
-        Button(onClick = { /* Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app.*/
+        Button(onClick = {
+            /* Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app.*/
+            Log.v("INTENT CHECK", "start")
+
             val intent = Intent(Intent.ACTION_INSERT).apply {
                 data = CalendarContract.Events.CONTENT_URI
                 putExtra(CalendarContract.Events.TITLE, "Deadline for Goal :${goal?.title}")
@@ -171,6 +172,8 @@ fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?
             if (intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)
             }
+
+            Log.v("INTENT CHECK", "end")
         }) {
             Icon(Icons.Filled.DateRange, contentDescription = "Add To Calendar")
             Text(text = "Save To Calendar")
@@ -179,7 +182,8 @@ fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?
 }
 
 fun convertDateToEpochMillis(dateStr: String): Long {
-    // Adjust the pattern here to match "dd/MM/yyyy"
+    /*This function changes date into EpochMillis so it can be passed in the implicit intent to the user's calander app.*/
+    // Adjust the pattern here to match "d/M/yyyy"
     val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
     val date = LocalDate.parse(dateStr, formatter)
     return date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -336,13 +340,3 @@ fun milestoneCard(
         }
     }
 }
-
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun showTasks(){
-//    BetterYesterdayTheme {
-//        TasksScreen(goalViewModel = , goalIndex = )
-//    }
-//}

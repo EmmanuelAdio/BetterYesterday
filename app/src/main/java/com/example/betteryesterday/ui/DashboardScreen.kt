@@ -1,6 +1,5 @@
 package com.example.betteryesterday.ui
 
-import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,14 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.example.betteryesterday.data.Goals
-import com.example.betteryesterday.ui.theme.BetterYesterdayTheme
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 import kotlin.math.cos
@@ -156,7 +151,7 @@ fun GoalPie(goal: Goals, milestonesViewModel: MilestoneViewModel){
             }
             Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(25.dp)) {
                 if (entries != null) {
-                    PieChart(entries, false)
+                    PieChart(entries)
                 }
             }
         }
@@ -253,7 +248,7 @@ fun calculateStartAngles(entries: List<PieChartEntry>) : List<Float>{
 }
 
 @Composable
-fun PieChart(entries: List<PieChartEntry>, full: Boolean) {
+fun PieChart(entries: List<PieChartEntry>) {
     Canvas(modifier = Modifier.fillMaxSize()
         .padding(4.dp)) {
         val startAngles = calculateStartAngles(entries)
@@ -267,23 +262,6 @@ fun PieChart(entries: List<PieChartEntry>, full: Boolean) {
                 topLeft = Offset.Zero,
                 size = this.size
             )
-            // Draw text labels
-            if ((entry.percentage > 0) && (full)){
-                val textRadius = size.minDimension / 2 * 0.5f // Adjust radius for label positioning
-                val textAngle = Math.toRadians((startAngles[index] + (entry.percentage * 360f) / 2).toDouble()).toFloat()
-                val textX = center.x + textRadius * cos(textAngle)
-                val textY = center.y + textRadius * sin(textAngle)
-                drawContext.canvas.nativeCanvas.drawText(
-                    entry.label,
-                    textX,
-                    textY,
-                    Paint().apply {
-                        textSize = 28.sp.toPx() // Set text size
-                        color = android.graphics.Color.BLACK
-                        textAlign = Paint.Align.CENTER
-                    }
-                )
-            }
         }
     }
 }

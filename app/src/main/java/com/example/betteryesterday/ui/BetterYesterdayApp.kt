@@ -213,8 +213,18 @@ fun BetterYesterdayApp(){
                 NewGoalScreen(navController,goalViewModel)
             }
 
-            composable(route = AppScreens.goalShare.name){
-                ShareScreen()
+            composable(route = AppScreens.goalShare.name + "/{id}",
+                arguments = listOf(
+                    navArgument(name = "id"){
+                        type = NavType.IntType//extract the argument as it is passed through the navigation route
+                    }
+                )
+            ){id ->
+                ShareScreen(
+                    id.arguments?.getInt("id"),//pass the goal ID to the New Milestone creation page
+                    milestonesViewModel,
+                    goalViewModel
+                )
             }
 
 
