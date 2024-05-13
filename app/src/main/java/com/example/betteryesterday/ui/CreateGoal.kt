@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,9 +26,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,30 +51,67 @@ fun NewGoalScreen(
     val goalTitle = rememberSaveable { mutableStateOf("") }
     val deadline = rememberSaveable { mutableStateOf("") }
     val description = rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
+    val showPicker = rememberSaveable { mutableStateOf(false) }
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    val context = LocalContext.current // Get the current Compose context
+    // Function to validate input and show errors if necessary
+    fun validateInputAndCreateGoal() {
+        when {
+            goalTitle.value.isBlank() -> {
+                errorMessage = "Please enter a goal title."
+                showErrorDialog = true
+            }
+            deadline.value.isBlank() -> {
+                errorMessage = "Please select a deadline."
+                showErrorDialog = true
+            }
+            else -> {
+                // All inputs are valid, proceed to create the goal
+                goalViewModel.insertGoal(
+                    Goals(
+                        title = goalTitle.value,
+                        deadline = deadline.value,
+                        description = description.value
+                    )
+                )
+                navController.popBackStack()
+            }
+        }
+    }
 
-    val showPicker = remember{ mutableStateOf(false) }
-
-    if (showPicker.value){
+    if (showPicker.value) {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        //declare the DatePickerDialog and set the initial values as current values (present year, month  and day)
         DatePickerDialog(
             context,
             { _: DatePicker, year: Int, month: Int, day: Int ->
-                // Format the date selected and pass it back via the callback
                 deadline.value = "$day/${month + 1}/$year"
                 showPicker.value = false
-            }, year, month, day
+            },
+            year, month, day
         ).apply {
             setOnCancelListener {
-                showPicker.value = false // Set to false when dialog is canceled
+                showPicker.value = false
             }
         }.show()
+    }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                Button(onClick = { showErrorDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 
     Column {
@@ -80,8 +120,6 @@ fun NewGoalScreen(
         LazyColumn(modifier = Modifier.padding(16.dp)) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-            }
-            item {
                 OutlinedTextField(
                     value = goalTitle.value,
                     onValueChange = { goalTitle.value = it },
@@ -93,21 +131,20 @@ fun NewGoalScreen(
             item {
                 OutlinedTextField(
                     value = deadline.value,
-                    onValueChange = { deadline.value = it },
+                    onValueChange = { },
                     label = { Text("Deadline") },
                     modifier = Modifier.fillMaxWidth(),
-                    readOnly = true, // Makes the text field non-editable
+                    readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { showPicker.value = true }) {
                             Icon(
-                                imageVector = Icons.Default.DateRange, // Use appropriate icon
+                                imageVector = Icons.Default.DateRange,
                                 contentDescription = "Select Date"
                             )
                         }
                     }
                 )
             }
-
             item {
                 OutlinedTextField(
                     value = description.value,
@@ -119,32 +156,23 @@ fun NewGoalScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
             item {
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween){
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Button(
-                        onClick = {
-                            //insert the new goal into the database
-                                  goalViewModel.insertGoal(
-                                      Goals(
-                                          title = goalTitle.value,
-                                          deadline = deadline.value,
-                                          description = description.value))
-                            navController.popBackStack()
-                        },
-                    ) {
-                        Text("Create")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            Log.v("HERE", "THIS SHOULD WORK")
-                            navController.popBackStack() },
+                        onClick = { navController.popBackStack() }
                     ) {
                         Text("Cancel")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { validateInputAndCreateGoal() }
+                    ) {
+                        Text("Create")
+                    }
+
                 }
             }
         }

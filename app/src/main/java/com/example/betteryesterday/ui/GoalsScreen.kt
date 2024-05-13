@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
+import com.example.betteryesterday.data.Milestones
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
@@ -53,12 +56,14 @@ fun GoalScreen(
     * TODO : Make the goals screen composable all all of its features*/
     //place holder add show that this is the dashboard screen.
     val context = LocalContext.current;
+
     Column {
         Text(text = "Hold down on the goal to get more options")
         ListOfGoals(navController, goalViewModel, context)
         Spacer(modifier = Modifier.height(16.dp))
 
     }
+
 }
 
 @Composable
@@ -88,6 +93,31 @@ fun GoalCard(
     var itemHeight by remember { mutableStateOf(0.dp) }
     val interactionSource = remember{ MutableInteractionSource() }
     val density = LocalDensity.current
+
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Delete Goal") },
+            text = { Text("Are you sure you want to delete the Goal") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        Toast
+                            .makeText(context, "Goal Deleted", Toast.LENGTH_SHORT)
+                            .show()
+                        goalViewModel.deleteGoal(goal)
+                    }
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showErrorDialog = false }
+                ) { Text("Cancel") }
+            }
+        )
+    }
 
     Card (
         modifier = Modifier
@@ -165,15 +195,14 @@ fun GoalCard(
             DropdownMenuItem(
                 text = { Text(text = "Delete") },
                 onClick = {
-                    Toast
-                        .makeText(context, "Delete Goal Clicked", Toast.LENGTH_SHORT)
-                        .show()
-                    goalViewModel.deleteGoal(goal)
+                    showErrorDialog = true
+
                     isContextMenuVisible = false
                 })
         }
 
     }
 }
+
 
 

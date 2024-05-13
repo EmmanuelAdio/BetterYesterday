@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -247,6 +248,32 @@ fun milestoneCard(
     val density = LocalDensity.current
 
     val checkedState = remember { mutableStateOf(milestone.complete) }
+
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Delete Milestone") },
+            text = { Text("Are you sure you want to delete the Goal") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        Toast
+                            .makeText(context, "Milestone deleted", Toast.LENGTH_SHORT)
+                            .show()
+                        milestonesViewModel.deleteMilestone(milestone)
+                    }
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showErrorDialog = false }
+                ) { Text("Cancel") }
+            }
+        )
+    }
+
     Card(
         shape = RoundedCornerShape(8.dp), // Rounded corners for the card
         modifier = Modifier
@@ -331,10 +358,8 @@ fun milestoneCard(
             DropdownMenuItem(
                 text = { Text(text = "Delete") },
                 onClick = {
-                    Toast
-                        .makeText(context, "Deleting Milestone", Toast.LENGTH_SHORT)
-                        .show()
-                    milestonesViewModel.deleteMilestone(milestone)
+                    showErrorDialog = true
+
                     isContextMenuVisible = false
                 })
         }

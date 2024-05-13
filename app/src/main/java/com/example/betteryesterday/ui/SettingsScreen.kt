@@ -12,14 +12,19 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +38,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -55,6 +62,7 @@ import java.util.Locale
 
 
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SettingsScreen(
@@ -81,6 +89,13 @@ fun SettingsScreen(
     var timeText = timeFormat.format(selectedTime.time)
     val showTimePicker = remember { mutableStateOf(false) }
 
+    //make sure when the settings page if they do not have permission for notification they cannot access this setting
+    if (!postNotificationPermission.status.isGranted) {
+        scope.launch {
+            settingsViewModel.saveNotificationToggle(false)
+        }
+    }
+
     // Event Handlers and UI Logic
     if (showTimePicker.value) {
         TimePickerDialog(context, { _, hour, minute ->
@@ -96,11 +111,17 @@ fun SettingsScreen(
             scope.launch {
                 settingsViewModel.saveTime(newTime.timeInMillis)
             }
-            //this just makes sure that the time saved fro the reminder is scheduled
-            scheduleRepeatingNotification(context, newTime)
 
+            Toast
+                .makeText(context, "Reminder set for $timeText", Toast.LENGTH_SHORT)
+                .show()
 
-        }, selectedTime.get(Calendar.HOUR_OF_DAY), selectedTime.get(Calendar.MINUTE), true).show()
+        }, selectedTime.get(Calendar.HOUR_OF_DAY), selectedTime.get(Calendar.MINUTE), true)
+            .apply {
+                setOnCancelListener {
+                    showTimePicker.value = false // Set to false when dialog is canceled
+                }
+            }.show()
     }
 
     // Permission Dialog
@@ -135,25 +156,54 @@ fun SettingsScreen(
                     scope.launch {
                         settingsViewModel.saveNotificationToggle(isChecked)
                     }
+                    if (isChecked) {
+                        if (postNotificationPermission.status.isGranted) {
+                            scope.launch {
+                                settingsViewModel.saveNotificationToggle(true)
+                            }
+                        } else {
+                            scope.launch {
+                                settingsViewModel.saveNotificationToggle(false)
+                            }
+                            showPermissionExplanationDialog.value = true
+                        }
+                    } else {
+                        scope.launch {
+                            settingsViewModel.saveNotificationToggle(false)
+                        }
+                    }
                 }
             )
         }
         if (showSettings) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Set you daily reminder for (click on time below) : ")
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = timeText, modifier = Modifier.clickable { showTimePicker.value = true })
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    scheduleRepeatingNotification(context, selectedTime)
-                    Toast
-                        .makeText(context, "Reminder set for $timeText", Toast.LENGTH_SHORT)
-                        .show()
-                }) {
-                    Text("Set Reminder")
+                Text(
+                    text = "Daily reminder set for",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Button(
+                    onClick = {
+                        showTimePicker.value = true
+
+                        scheduleRepeatingNotification(context, selectedTime)
+                    },
+                    modifier = Modifier.padding(start = 8.dp),
+                ) {
+                    // Button text to show selected time
+                    Text(
+                        text = timeText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
                 }
             }
         }
