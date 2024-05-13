@@ -54,6 +54,7 @@ fun GoalScreen(
     //place holder add show that this is the dashboard screen.
     val context = LocalContext.current;
     Column {
+        Text(text = "Hold down on the goal to get more options")
         ListOfGoals(navController, goalViewModel, context)
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -106,7 +107,9 @@ fun GoalCard(
                         interactionSource.emit(PressInteraction.Release(press))
 
                         if (!isContextMenuVisible) { // Only trigger if the context menu isn't visible
-                            Toast.makeText(context, "Goal clicked!", Toast.LENGTH_SHORT).show()
+                            Toast
+                                .makeText(context, "Goal clicked!", Toast.LENGTH_SHORT)
+                                .show()
                             navController.navigate(route = AppScreens.goalMilestones.name + "/${goal.id}")
                         }
                     },
@@ -122,7 +125,8 @@ fun GoalCard(
             val milestonesViewModel : MilestoneViewModel = viewModel()
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.height(100.dp)
+                modifier = Modifier
+                    .height(100.dp)
                     .width(100.dp)
             ) {
                 var entries = getGoalPieChart(milestonesViewModel,goal).observeAsState().value

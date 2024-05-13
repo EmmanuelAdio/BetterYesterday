@@ -39,6 +39,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.betteryesterday.MainActivity
+import com.example.betteryesterday.NotificationHandler
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
@@ -62,7 +64,7 @@ data class BottomNavigationItems(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BetterYesterdayApp(){
+fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity) {
     val navController: NavHostController = rememberNavController();
     val context = LocalContext.current;
 
@@ -174,7 +176,7 @@ fun BetterYesterdayApp(){
                 DashboardScreen(goalViewModel, milestonesViewModel)
             }
             composable(route = AppScreens.settings.name){
-                SettingsScreen(navController)
+                SettingsScreen(navController, service, mainActivity)
             }
             composable(route = AppScreens.goals.name){
                 GoalScreen(goalViewModel, navController)

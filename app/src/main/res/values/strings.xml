@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">BetterYesterday</string>
     <string name="title_activity_main2">MainActivity2</string>
+    <string name="Notification_Description">This is just the notification that displays at the end of your dya to remind you to check your goals.</string>
 </resources>

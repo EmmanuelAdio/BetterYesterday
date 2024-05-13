@@ -79,5 +79,7 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
+    implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
 }
