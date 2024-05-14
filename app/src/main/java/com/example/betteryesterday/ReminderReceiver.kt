@@ -9,13 +9,8 @@ import java.util.Calendar
 
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == "android.intent.action.BOOT_COMPLETED") {
-            // Reschedule the alarm
-            rescheduleAlarms(context)
-        } else {
-            // Handle the alarm trigger
-            showNotification(context)
-        }
+        // Handle the alarm trigger
+        showNotification(context)
     }
 
     private fun rescheduleAlarms(context: Context) {

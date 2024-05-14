@@ -1,5 +1,6 @@
 package com.example.betteryesterday.data
 
+import android.database.Cursor
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
@@ -66,4 +67,60 @@ interface TablesDao{
     suspend  fun incompleteMilestone(id: Int)
 
 
+    /*Content provider Queries and ETC*/
+    /* Goals Operations */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertGoal_CP(goals: Goals): Long
+
+    @Update
+    fun updateGoal_CP(goals: Goals): Int
+
+    @Delete
+    fun deleteGoal_CP(goals: Goals): Int
+
+    @Query("SELECT * from Goals WHERE id = :id")
+    fun getGoalItem_CP(id: Int): Cursor
+
+    @Query("SELECT * FROM Goals")
+    fun getAllGoals_CP(): Cursor
+
+    /* Milestone Operations */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertMilestone_CP(milestones: Milestones): Long
+
+    @Update
+    fun updateMilestone_CP(milestones: Milestones): Int
+
+    @Delete
+    fun deleteMilestone_CP(milestones: Milestones): Int
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = true")
+    fun allCompleteMilestones_CP(): Cursor
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false")
+    fun allIncompleteMilestones_CP(): Cursor
+
+    @Query("SELECT * from Milestones WHERE id = :id")
+    fun getMilestoneItem_CP(id: Int): Cursor
+
+    @Query("SELECT * from Milestones WHERE goalID = :id")
+    fun getGoalMilestones_CP(id: Int): Cursor
+
+    @Query("SELECT * from Milestones")
+    fun getAllMilestones_CP(): Cursor
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = true AND goalID = :id")
+    fun getNumOfComplete_CP(id: Int): Cursor
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE complete = false AND goalID = :id")
+    fun getNumOfIncomplete_CP(id: Int): Cursor
+
+    @Query("SELECT COUNT(*) FROM Milestones WHERE goalID = :id")
+    fun getNumOfGoalMilestones_CP(id: Int): Cursor
+
+    @Query("UPDATE milestones SET complete = true WHERE id = :id")
+    fun completeMilestone_CP(id: Int): Int
+
+    @Query("UPDATE milestones SET complete = false WHERE id = :id")
+    fun incompleteMilestone_CP(id: Int): Int
 }

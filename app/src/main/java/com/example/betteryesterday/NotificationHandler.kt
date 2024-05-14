@@ -26,6 +26,7 @@ class NotificationHandler(
             PrefsDataStoreManager.getNotificationToggle(context).first()
         }
 
+        //only show the notification if the user wants has enables notification viewing
         if (showNotification) {
             Log.d("NOTIFICATION 2", "The Notification Is being Received")
             val activityIntent = Intent(context, MainActivity::class.java)

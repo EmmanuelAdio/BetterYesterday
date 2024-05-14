@@ -82,4 +82,16 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // Standard Android test libraries
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+
+    // Room testing support
+    androidTestImplementation("androidx.room:room-testing:2.4.2")
+
+    // Use this for Cursor to ContentValues and other database testing utilities
+    androidTestImplementation("androidx.test:core:1.4.0")
+
 }

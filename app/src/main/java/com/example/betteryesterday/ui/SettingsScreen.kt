@@ -116,6 +116,8 @@ fun SettingsScreen(
                 .makeText(context, "Reminder set for $timeText", Toast.LENGTH_SHORT)
                 .show()
 
+            scheduleRepeatingNotification(context, newTime)
+
         }, selectedTime.get(Calendar.HOUR_OF_DAY), selectedTime.get(Calendar.MINUTE), true)
             .apply {
                 setOnCancelListener {

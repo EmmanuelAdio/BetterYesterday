@@ -33,7 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.data.Milestones
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
