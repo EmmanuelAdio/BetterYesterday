@@ -3,6 +3,7 @@ package com.example.betteryesterday.ui
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
@@ -52,13 +54,25 @@ fun GoalScreen(
     goalViewModel: GoalViewModel,
     navController: NavHostController
 ){
-    /*This is the dashboard screen composable
-    * TODO : Make the goals screen composable all all of its features*/
+    /* This is the dashboard screen composable */
     //place holder add show that this is the dashboard screen.
     val context = LocalContext.current;
 
-    Column {
-        Text(text = "Hold down on the goal to get more options")
+    Column (horizontalAlignment = Alignment.CenterHorizontally) {
+        // Indication of long press
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .padding(4.dp)
+        ) {
+            Text(
+                text = "TIP : Long press on goal card for more options",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         ListOfGoals(navController, goalViewModel, context)
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -108,6 +122,7 @@ fun GoalCard(
                             .makeText(context, "Goal Deleted", Toast.LENGTH_SHORT)
                             .show()
                         goalViewModel.deleteGoal(goal)
+                        showErrorDialog = false
                     }
                 ) { Text("OK") }
             },
@@ -164,13 +179,24 @@ fun GoalCard(
                     PieChart(entries)
                 }
             }
-            Box(contentAlignment = Alignment.Center){
-                Column {
-                    Text("${goal.title}")
-                    Text("${goal.deadline}")
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.weight(1f)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = goal.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    Text(
+                        text = goal.deadline,
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
-
             }
+
+
         }
         DropdownMenu(
             expanded = isContextMenuVisible,

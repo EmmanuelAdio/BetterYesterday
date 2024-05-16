@@ -1,6 +1,5 @@
 package com.example.betteryesterday.ui
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -37,14 +36,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.betteryesterday.data.Goals
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
 @Composable
-fun ShareScreen(id: Int?, milestonesViewModel: MilestoneViewModel, goalViewModel: GoalViewModel) {
-    /*This is the dashboard screen composable */
-    //place holder add show that this is the dashboard screen.
+fun ShareScreen(
+    navController: NavHostController,
+    id: Int?,
+    milestonesViewModel: MilestoneViewModel,
+    goalViewModel: GoalViewModel
+) {
+    /*This is the share screen composable */
     val context = LocalContext.current
 
     var goal = id?.let { goalViewModel.getGoal(it) }
@@ -65,10 +69,11 @@ fun ShareScreen(id: Int?, milestonesViewModel: MilestoneViewModel, goalViewModel
                 .width(400.dp)
                 .height(300.dp),
                 ){
-                var progress = (entriesState?.get(0)?.percentage)?.times(100)
+                var progress = (entriesState?.get(0)?.percentage)?.times(100)//get teh first entry in the entries list which is the number of completes miles stones in the goal
+                var formattedProgress = String.format("%.2f", progress) // Format progress to 2 decimal places
                 Text(text = "For my goal : ${goalState?.title}\n" +
                         "goal Description : ${goalState?.description} \n" +
-                        "goal Progress : $progress% complete\n ",
+                        "goal Progress : $formattedProgress% complete\n ",
                     modifier = Modifier.padding(10.dp))
             }
 
@@ -96,11 +101,20 @@ fun ShareScreen(id: Int?, milestonesViewModel: MilestoneViewModel, goalViewModel
         item {
             Row (modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
+                Button(
+                    onClick = { navController.popBackStack() },
+                ) {
+                    Text("Cancel")
+                }
+
+                Spacer(modifier = Modifier.width(20.dp))
+
                 Button(onClick = {
-                    var progress = (entriesState?.get(0)?.percentage)?.times(100)
+                    var progress = (entriesState?.get(0)?.percentage)?.times(100)//get teh first entry in the entries list which is the number of completes miles stones in the goal
+                    var formattedProgress = String.format("%.2f", progress) // Format progress to 2 decimal places
                     var message = "I am excited to share my total progress so far on my goal \n**${goalState?.title}**\n" +
                             "*goal Description* : ${goalState?.description} \n" +
-                            "*goal Progress* : $progress% complete\n " +
+                            "*goal Progress* : $formattedProgress% complete\n " +
                             "\n" +
                             "I am really enjoying my experience so far with the *BetterYesterday* app join me and download it too :D"
 
@@ -180,9 +194,10 @@ fun capturePieChart(
     Log.v("Entries", entries.toString())
 
     var progress = (entries?.get(0)?.percentage)?.times(100)
+    var formattedProgress = String.format("%.2f", progress) // Format progress to 2 decimal places
 
     // Text inside the pie chart
-    val centerText = "$progress% complete!!"
+    val centerText = "$formattedProgress% complete!!"
     val centerTextWidth = textPaint.measureText(centerText)
     val centerTextX = (bitmapWidth - centerTextWidth) / 2
     val centerTextY = centerY

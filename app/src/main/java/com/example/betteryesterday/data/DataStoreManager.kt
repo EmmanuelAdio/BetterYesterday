@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.map
 val Context.dataStore by preferencesDataStore(name = "settings_prefs")
 
 object PrefsDataStoreManager {
+    //define the variables and peices of data that we want to keep
     private val SELECTED_TIME_KEY = longPreferencesKey("selected_time")
     private val NOTIFICATION_TOGGLE = booleanPreferencesKey("show_notifications")
+    private val DARKMODE_TOGGLE = booleanPreferencesKey("darkmode_enabled")
 
     // Function to get the saved time flow
     fun getSavedTimeFlow(context: Context): Flow<Long> {
@@ -44,4 +46,20 @@ object PrefsDataStoreManager {
             preferences[NOTIFICATION_TOGGLE] = enabled
         }
     }
+
+    // Function to get the darkmode toggle flow
+    fun getDarkModeToggle(context: Context): Flow<Boolean> {
+        return context.dataStore.data
+            .map { preferences ->
+                preferences[DARKMODE_TOGGLE] ?: false  // Default is `true` if not set
+            }
+    }
+
+    // Suspend function to save the darkmode toggle state
+    suspend fun saveDarkModeToggle(context: Context, enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DARKMODE_TOGGLE] = enabled
+        }
+    }
+
 }

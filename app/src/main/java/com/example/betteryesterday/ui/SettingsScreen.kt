@@ -77,6 +77,7 @@ fun SettingsScreen(
     // Observe showSettings state from ViewModel
     val showSettings by settingsViewModel.showSettings.collectAsState(initial = false)
     val savedTime by settingsViewModel.savedTime.collectAsState(initial = System.currentTimeMillis())
+    val darkMode by settingsViewModel.darkMode.collectAsState(initial = false)
 
     // Permission Handling
     val postNotificationPermission = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
@@ -148,7 +149,6 @@ fun SettingsScreen(
         )
     }
 
-    // UI
     Column(modifier = Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
             Text("Enable Notifications: ")
@@ -208,6 +208,19 @@ fun SettingsScreen(
                     )
                 }
             }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+
+            Text("Enable Dark Mode: ")
+            Switch(
+                checked = darkMode,
+                onCheckedChange = { isChecked ->
+                    scope.launch {
+                        settingsViewModel.saveDarkModeToggle(isChecked)
+                    }
+                }
+            )
         }
     }
 }

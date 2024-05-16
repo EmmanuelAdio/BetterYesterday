@@ -14,6 +14,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _showSettings = MutableStateFlow(false)
     val showSettings: Flow<Boolean> get() = _showSettings
 
+    private val _darkMode = MutableStateFlow(false)
+    val darkMode: Flow<Boolean> get() = _darkMode
+
     private val _savedTime = MutableStateFlow(System.currentTimeMillis())
     val savedTime: Flow<Long> get() = _savedTime
 
@@ -30,6 +33,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _savedTime.value = it
             }
         }
+
+        viewModelScope.launch {
+            PrefsDataStoreManager.getDarkModeToggle(context).collect {
+                _darkMode.value = it
+            }
+        }
     }
 
     suspend fun saveTime(time: Long) {
@@ -40,5 +49,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     suspend fun saveNotificationToggle(enabled: Boolean) {
         PrefsDataStoreManager.saveNotificationToggle(context, enabled)
         _showSettings.value = enabled
+    }
+
+    suspend fun saveDarkModeToggle(enabled: Boolean) {
+        PrefsDataStoreManager.saveDarkModeToggle(context, enabled)
+        _darkMode.value = enabled
     }
 }

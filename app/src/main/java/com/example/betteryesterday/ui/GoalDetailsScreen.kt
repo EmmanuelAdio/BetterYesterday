@@ -6,6 +6,7 @@ import android.provider.CalendarContract
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -76,7 +77,7 @@ fun GoalsDetailsScreen(
     val milestoneData = milestonesList?.observeAsState(initial = emptyList())?.value
 
     val context = LocalContext.current;
-    Column {
+    Column (horizontalAlignment = Alignment.CenterHorizontally) {
         LazyColumn {
             item{
                 Row(
@@ -197,6 +198,19 @@ fun MilestonesBox(
     milestonesViewModel: MilestoneViewModel,
     context: Context
 ) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .padding(4.dp)
+    ) {
+        Text(
+            text = "TIP : Long press on Milestone for more options \n TIP : Double tap to change milestone state",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
     Card(
         modifier = Modifier
             .fillMaxSize() // Fill the available space
@@ -207,7 +221,7 @@ fun MilestonesBox(
                 .fillMaxSize()
                 // Reserve space for the buttons at the bottom
         ) {
-            listOfMilestones(milestonesData, milestonesViewModel, context)  // This will list the tasks in a LazyColumn
+            listOfMilestones(milestonesData, milestonesViewModel, context)  // This will list the milestones for the goal in a LazyColumn
         }
     }
 }
@@ -263,6 +277,7 @@ fun milestoneCard(
                             .makeText(context, "Milestone deleted", Toast.LENGTH_SHORT)
                             .show()
                         milestonesViewModel.deleteMilestone(milestone)
+                        showErrorDialog = false
                     }
                 ) { Text("OK") }
             },
@@ -294,6 +309,19 @@ fun milestoneCard(
                     onLongPress = {
                         isContextMenuVisible = true
                         pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
+                    },
+                    onDoubleTap = {
+                        if (milestone.complete) {
+                            checkedState.value = false
+                            milestone.complete = false
+                            milestonesViewModel.updateMilestone(milestone)
+                            Toast.makeText(context, "Marked Incomplete!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            checkedState.value = true
+                            milestone.complete = true
+                            milestonesViewModel.updateMilestone(milestone)
+                            Toast.makeText(context, "Marked Complete!", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 )
             }
@@ -315,10 +343,12 @@ fun milestoneCard(
                 onCheckedChange = {
                     checkedState.value = it
                     if (it) {
+                        checkedState.value = true
                         milestone.complete = true
                         milestonesViewModel.updateMilestone(milestone)
                         Toast.makeText(context, "Marked Complete!", Toast.LENGTH_SHORT).show()
                     } else {
+                        checkedState.value = false
                         milestone.complete = false
                         milestonesViewModel.updateMilestone(milestone)
                         Toast.makeText(context, "Marked Incomplete!", Toast.LENGTH_SHORT).show()
@@ -348,10 +378,11 @@ fun milestoneCard(
             DropdownMenuItem(
                 text = { Text(text = "Mark As Complete") },
                 onClick = {
+                    checkedState.value = true
                     milestone.complete = true
                     milestonesViewModel.updateMilestone(milestone)
                     Toast.makeText(context, "Marked Complete!", Toast.LENGTH_SHORT).show()
-                    checkedState.value = true
+
 
                     isContextMenuVisible = false
                 })

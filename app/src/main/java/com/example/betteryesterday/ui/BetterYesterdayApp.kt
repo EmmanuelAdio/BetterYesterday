@@ -1,15 +1,20 @@
 package com.example.betteryesterday.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.AccountBox
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -27,10 +32,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -41,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.betteryesterday.MainActivity
 import com.example.betteryesterday.NotificationHandler
+import com.example.betteryesterday.R
 import com.example.betteryesterday.ui.viewModels.GoalViewModel
 import com.example.betteryesterday.ui.viewModels.MilestoneViewModel
 
@@ -52,8 +61,8 @@ enum class AppScreens{
     settings,//this represents the settings page
     goalMilestones,//this represents the page the shows further detail about a goal and all its milestones.
     goalShare,//this represents the share page.
-    createGoal,
-    createMilestones,
+    createGoal,//this is the page that teh goal creation is on
+    createMilestones,//this is the page that teh milestones creation is on
 }
 data class BottomNavigationItems(
     val title : String,
@@ -66,22 +75,21 @@ data class BottomNavigationItems(
 @Composable
 fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity) {
     val navController: NavHostController = rememberNavController();
-    val context = LocalContext.current;
 
     val goalViewModel : GoalViewModel = viewModel()
     val milestonesViewModel : MilestoneViewModel = viewModel()
 
-    val items = listOf(
+    val navBarItems = listOf(
         BottomNavigationItems (
             title = AppScreens.dashboard.name,
-            selectedIcon = Icons.Filled.AccountBox,
-            unSelectedIcon = Icons.Outlined.AccountBox,
+            selectedIcon = Icons.Filled.Home,
+            unSelectedIcon = Icons.Outlined.Home,
             hasNews = false
             ),
         BottomNavigationItems (
             title = AppScreens.goals.name,
-            selectedIcon = Icons.Filled.Info,
-            unSelectedIcon = Icons.Outlined.Info,
+            selectedIcon = Icons.Filled.Star,
+            unSelectedIcon = Icons.Outlined.Star,
             hasNews = false
         ),
         BottomNavigationItems (
@@ -93,6 +101,7 @@ fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity)
 
     )
 
+    //this variable will keep track of the navigation screen the user last clicked on
     var selectedItemIndex by rememberSaveable {
         mutableStateOf(0)
     }
@@ -106,15 +115,32 @@ fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity)
                 ),
                 /*This is where i will put the ICON for the Better Yesterday app*/
                 title = {
-                    Text("Better Yesterday",
-                        maxLines = 1,
-                        overflow =  TextOverflow.Ellipsis)//Add a title to the app,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.better_yesterday_icon),
+                            contentDescription = "Better Yesterday Icon",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .size(65.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text(
+                            "Better Yesterday",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
                 }
             )
         },
         bottomBar = {
            NavigationBar{
-               items.forEachIndexed { index, item ->
+               navBarItems.forEachIndexed { index, item ->
                    NavigationBarItem(
                        selected = selectedItemIndex == index,
                        onClick = {
@@ -223,6 +249,7 @@ fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity)
                 )
             ){id ->
                 ShareScreen(
+                    navController,
                     id.arguments?.getInt("id"),//pass the goal ID to the New Milestone creation page
                     milestonesViewModel,
                     goalViewModel

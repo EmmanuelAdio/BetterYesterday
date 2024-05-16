@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -122,9 +123,16 @@ fun NewGoalScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = goalTitle.value,
-                    onValueChange = { goalTitle.value = it },
+                    onValueChange = {
+                        if (it.length <= 30) {
+                            goalTitle.value = it
+                        } else {
+
+                        }},
                     label = { Text("Goal Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -159,14 +167,14 @@ fun NewGoalScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Button(
                         onClick = { navController.popBackStack() }
                     ) {
                         Text("Cancel")
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.width(20.dp))
                     Button(
                         onClick = { validateInputAndCreateGoal() }
                     ) {

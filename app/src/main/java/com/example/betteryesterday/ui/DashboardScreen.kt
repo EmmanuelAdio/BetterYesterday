@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -79,19 +80,30 @@ fun displayNoOfCompletedTasks(noCompletedMilestones: Int?) {
             .height(150.dp) // Set a fixed height for the cards
             .fillMaxWidth(0.5f) // Fill half the width of the parent
             .padding(8.dp) // Add padding around the card
-    )  {
+    ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
-        ){
-            Column {
-                Text(text = "$noCompletedMilestones")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Completed Milestones")
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    text = noCompletedMilestones?.toString() ?: "0",
+                    style = MaterialTheme.typography.titleLarge // Large number style
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Completed Milestones",
+                    style = MaterialTheme.typography.labelMedium // Smaller label style
+                )
             }
         }
     }
 }
+
 @Composable
 fun displayNoOfRemainingTasks(noIncompleteMilestones: Int?) {
     Card(
@@ -99,15 +111,25 @@ fun displayNoOfRemainingTasks(noIncompleteMilestones: Int?) {
             .height(150.dp) // Set a fixed height for the cards
             .fillMaxWidth() // Fill the remaining width
             .padding(8.dp) // Add padding around the card
-    )  {
+    ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(16.dp)
-        ){
-            Column {
-                Text(text = "$noIncompleteMilestones")
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Remaining milestones")
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    text = noIncompleteMilestones?.toString() ?: "0",
+                    style = MaterialTheme.typography.titleLarge // Large number style
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Remaining Milestones",
+                    style = MaterialTheme.typography.labelMedium // Smaller label style
+                )
             }
         }
     }

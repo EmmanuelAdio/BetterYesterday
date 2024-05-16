@@ -1,14 +1,12 @@
 package com.example.betteryesterday
 
 import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.betteryesterday.provider.BetterYesterdayContract
-import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.Assert.*
@@ -36,7 +34,7 @@ class BetterYesterdayProviderTest {
         val goalValues = ContentValues().apply {
             put(BetterYesterdayContract.Goals.COLUMN_TITLE, "Learn Android")
             put(BetterYesterdayContract.Goals.COLUMN_DESCRIPTION, "Study Android development deeply")
-            put(BetterYesterdayContract.Goals.COLUMN_DEADLINE, "2024-12-31")
+            put(BetterYesterdayContract.Goals.COLUMN_DEADLINE, "31/12/2024")
         }
 
         // Insert the goal into the provider using the ContentResolver. Expect a URI back.
@@ -73,7 +71,7 @@ class BetterYesterdayProviderTest {
         val goalValues = ContentValues().apply {
             put(BetterYesterdayContract.Goals.COLUMN_TITLE, "Run a marathon")
             put(BetterYesterdayContract.Goals.COLUMN_DESCRIPTION, "Prepare for a marathon in 2024")
-            put(BetterYesterdayContract.Goals.COLUMN_DEADLINE, "2024-06-01")
+            put(BetterYesterdayContract.Goals.COLUMN_DEADLINE, "01/06/2024")
         }
 
         // Insert the goal and get its URI.
