@@ -202,7 +202,7 @@ fun BetterYesterdayApp(service: NotificationHandler, mainActivity: MainActivity)
                 DashboardScreen(goalViewModel, milestonesViewModel)
             }
             composable(route = AppScreens.settings.name){
-                SettingsScreen(navController, service, mainActivity)
+                SettingsScreen()
             }
             composable(route = AppScreens.goals.name){
                 GoalScreen(goalViewModel, navController)

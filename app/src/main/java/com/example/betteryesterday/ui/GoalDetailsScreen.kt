@@ -159,9 +159,10 @@ fun buttonRow(navController: NavHostController, modifier: Modifier, goal: Goals?
             Text(text = "New Milestone")
         }
         Button(onClick = {
-            /* Define action (implicit intent) for when the user wants to save teh goal deadline to their calendar app.*/
+            /* Define action (implicit intent) for when the user wants to save the goal's deadline to their calendar app.*/
             Log.v("INTENT CHECK", "start")
 
+            //define the intent to the other app that the
             val intent = Intent(Intent.ACTION_INSERT).apply {
                 data = CalendarContract.Events.CONTENT_URI
                 putExtra(CalendarContract.Events.TITLE, "Deadline for Goal :${goal?.title}")

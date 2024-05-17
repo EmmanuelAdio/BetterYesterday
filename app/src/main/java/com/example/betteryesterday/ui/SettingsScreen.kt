@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -66,9 +67,6 @@ import java.util.Locale
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SettingsScreen(
-    navController: NavHostController,
-    service: NotificationHandler,
-    mainActivity: MainActivity,
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -150,77 +148,86 @@ fun SettingsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
-            Text("Enable Notifications: ")
-            Switch(
-                checked = showSettings,
-                onCheckedChange = { isChecked ->
-                    scope.launch {
-                        settingsViewModel.saveNotificationToggle(isChecked)
-                    }
-                    if (isChecked) {
-                        if (postNotificationPermission.status.isGranted) {
+        LazyColumn {
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+                    Text("Enable Notifications: ")
+                    Switch(
+                        checked = showSettings,
+                        onCheckedChange = { isChecked ->
                             scope.launch {
-                                settingsViewModel.saveNotificationToggle(true)
+                                settingsViewModel.saveNotificationToggle(isChecked)
                             }
-                        } else {
-                            scope.launch {
-                                settingsViewModel.saveNotificationToggle(false)
+                            if (isChecked) {
+                                if (postNotificationPermission.status.isGranted) {
+                                    scope.launch {
+                                        settingsViewModel.saveNotificationToggle(true)
+                                    }
+                                } else {
+                                    scope.launch {
+                                        settingsViewModel.saveNotificationToggle(false)
+                                    }
+                                    showPermissionExplanationDialog.value = true
+                                }
+                            } else {
+                                scope.launch {
+                                    settingsViewModel.saveNotificationToggle(false)
+                                }
                             }
-                            showPermissionExplanationDialog.value = true
                         }
-                    } else {
-                        scope.launch {
-                            settingsViewModel.saveNotificationToggle(false)
-                        }
-                    }
-                }
-            )
-        }
-        if (showSettings) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Daily reminder set for",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Button(
-                    onClick = {
-                        showTimePicker.value = true
-
-                        scheduleRepeatingNotification(context, selectedTime)
-                    },
-                    modifier = Modifier.padding(start = 8.dp),
-                ) {
-                    // Button text to show selected time
-                    Text(
-                        text = timeText,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
             }
-        }
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+            item {
+                if (showSettings) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Daily reminder set for",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
 
-            Text("Enable Dark Mode: ")
-            Switch(
-                checked = darkMode,
-                onCheckedChange = { isChecked ->
-                    scope.launch {
-                        settingsViewModel.saveDarkModeToggle(isChecked)
+                        Button(
+                            onClick = {
+                                showTimePicker.value = true
+
+                                scheduleRepeatingNotification(context, selectedTime)
+                            },
+                            modifier = Modifier.padding(start = 8.dp),
+                        ) {
+                            // Button text to show selected time
+                            Text(
+                                text = timeText,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
                     }
                 }
-            )
+            }
+
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+
+                    Text("Enable Dark Mode: ")
+                    Switch(
+                        checked = darkMode,
+                        onCheckedChange = { isChecked ->
+                            scope.launch {
+                                settingsViewModel.saveDarkModeToggle(isChecked)
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }

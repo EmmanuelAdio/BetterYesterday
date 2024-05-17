@@ -4,23 +4,34 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.betteryesterday.data.PrefsDataStoreManager
 import com.example.betteryesterday.ui.scheduleRepeatingNotification
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.util.Calendar
 
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // Handle the alarm trigger
-        showNotification(context)
+        if (intent.action == "android.intent.action.BOOT_COMPLETED") {
+            // Reschedule the alarm based on the stored settings
+            rescheduleAlarms(context)
+        } else {
+            // Handle the alarm trigger and show the notification
+            showNotification(context)
+        }
     }
 
     private fun rescheduleAlarms(context: Context) {
         // Reschedule the same alarm
-        val calendar = Calendar.getInstance().apply {
-            // Example: Set for 10 AM
-            set(Calendar.HOUR_OF_DAY, 10)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
+        var time = runBlocking {
+            PrefsDataStoreManager.getSavedTimeFlow(context).first()
         }
+
+        val calendar = Calendar.getInstance().apply {
+            time = timeInMillis
+        }
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+
         scheduleRepeatingNotification(context, calendar)
     }
 

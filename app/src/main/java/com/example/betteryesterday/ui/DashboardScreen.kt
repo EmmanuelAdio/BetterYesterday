@@ -38,12 +38,13 @@ import kotlin.math.sin
 
 @Composable
 fun DashboardScreen(goalViewModel: GoalViewModel, milestonesViewModel: MilestoneViewModel){
-    /*This is the dashboard screen composable
-    * TODO : MAke the dashboard screen composable and all of its features*/
+    /*This is the dashboard screen composable*/
 
     val goals = goalViewModel.allGoals.observeAsState(initial = emptyList()).value //This is how the goals displayed in the lazy row will be stored.
-    val noCompletedMilestones = milestonesViewModel.completedMilestones.observeAsState().value
+    val noCompletedMilestones = milestonesViewModel.completedMilestones.observeAsState().value /* this is how collect teh number rof complete miles tones form the database */
     val noIncompleteMilestones = milestonesViewModel.incompletedMilestones.observeAsState().value
+
+
     Column {
         Text("WELCOME BACK", modifier = Modifier.align(Alignment.CenterHorizontally))
         LazyColumn {
@@ -137,11 +138,7 @@ fun displayNoOfRemainingTasks(noIncompleteMilestones: Int?) {
 
 @Composable
 fun displayGoalPieCharts(goals: List<Goals>, milestonesViewModel: MilestoneViewModel) {
-    if (goals == null){
-        Text(text = "You Have No Goals")
-        Text(text = "Try and add some")
-        return
-    }
+    /*This function is how the pie charts are displayed on the dashboard in the lazy row*/
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp), // Spacing between items

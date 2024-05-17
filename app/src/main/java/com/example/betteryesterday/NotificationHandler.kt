@@ -45,7 +45,7 @@ class NotificationHandler(
 
             // Building the notification
             val notification = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
-                .setSmallIcon(R.drawable.baseline_notifications_active_24)
+                .setSmallIcon(R.drawable.better_yesterday_icon)
                 .setContentTitle("BetterYesterday Reminder")
                 .setContentText("Remember to go onto the BetterYesterday app and tick off your Milestones and Goals!!")
                 .setContentIntent(pendingActivityIntent)
